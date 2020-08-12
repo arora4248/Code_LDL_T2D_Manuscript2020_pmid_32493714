@@ -1,0 +1,27 @@
+/rsgrps/yann/amit/Tools/BOLT-LMM_v2.3.2/bolt \
+--bed=/rsgrps/yann/UKBIOBANK/Download/500K_genos/NonImpFiles_v3/ukb_cal_chr{1:22}_v2.bed.gz \
+--bim=/rsgrps/yann/UKBIOBANK/Download/500K_genos/NonImpFiles_v3/ukb_snp_chr{1:22}_v2.bim.gz \
+--fam=/rsgrps/yann/UKBIOBANK/Download/500K_genos/FamFile/fixforBOLT/Fam_file_for_BOLT-LMM.fam \
+--bgenSampleFileList=/rsgrps/yann/UKBIOBANK/analyses/Lipedema/500K_v2With2ndGENreleaseApril2018_withXetc/bgenSampleFileList \
+--remove=/rsgrps/yann/UKBIOBANK/500KData/BOLT-in-plink-butnot_imp/bolt.in_plink_but_not_imputed.FID_IID.979.txt \
+--remove=/rsgrps/yann/UKBIOBANK/500KData/BOLT-in-plink-butnot_imp/bolt.in_plink_but_not_imputed.FID_IID.652.txt \
+--phenoFile=/rsgrps/yann/amit/UKBiobank/Gwas/Covar_BoltLMM_excl_deconsent104_20190514_exclEatingTimeMorethan16hrs.txt \
+--phenoCol=InvNorm_LDL_eatingTime \
+--covarFile=/rsgrps/yann/amit/UKBiobank/Gwas/Covar_BoltLMM_excl_deconsent104_20190514_exclEatingTimeMorethan16hrs.txt \
+--covarCol=f.54.0.0 \
+--covarCol=chip \
+--covarCol=Sex \
+--qCovarCol=Age_sq \
+--qCovarCol=Age_v0 \
+--qCovarCol=Fasting_time_v0 \
+--covarMaxLevels=30 \
+--qCovarCol=PC{1:10} \
+--bgenMinMAF=1e-3 \
+--bgenMinINFO=0.4 \
+--LDscoresFile=/rsgrps/yann/UKBIOBANK/BOLT-LMM/BOLT-LMM_v2.3/tables/LDSCORE.1000G_EUR.tab.gz \
+--geneticMapFile=/rsgrps/yann/UKBIOBANK/BOLT-LMM/BOLT-LMM_v2.3/tables/genetic_map_hg19_withX.txt.gz \
+--numThreads=8 \
+--statsFile LDL_Gwas_Bolt_Stats \
+--statsFileBgenSnps=bolt_460K_selfRepWhite.LDL_corrected_Gwas.bgenv3.stats.gz \
+--lmm \
+--verboseStats

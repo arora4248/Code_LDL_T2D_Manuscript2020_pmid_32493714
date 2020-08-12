@@ -1,0 +1,79 @@
+---
+title: "pull_Indpependent_2600snps_from_ukb.ldl_diagram.t2d"
+author: "Amit Arora"
+date: "February 7, 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+The goal here is use the 2600 Snps identified from the doscovery set. The 2600 were pulled using the opposite going + univ p <5-5 + metacca_P < 5e-8
+
+Once we have the 2600 snps, we then identified independent snps from this set of 2600 using FUMA-GWAS. Here we are merging 60 independent snps with their univariate summary statistics and metacca results using R
+
+#### read the files
+```{r,eval=FALSE}
+
+univ<-read.table(file="/rsgrps/yann/amit/PleiotropicTraits/output_files/tbl_univ_metacca_opp_lessthan5e-5_20200131.txt",T)
+
+Indp<-read.table(file="/rsgrps/yann/amit/PleiotropicTraits/output_files/IndSigSNPs_500kb_r2_0.1.txt",T)
+
+names(Indp)
+#[1] "No"           "GenomicLocus" "uniqID"       "rsID"         "chr"         
+#[6] "pos"          "p"            "nSNPs"        "nGWASSNPs"   
+ 
+names(univ)
+# [1] "SNP"       "CHR"       "BP"        "EA.ldl"    "NEA.ldl"   "EAF.ldl"  
+# [7] "beta.ldl"  "pval.ldl"  "se.ldl"    "EA.t2d"    "NEA.t2d"   "EAF.t2d"  
+#[13] "beta.t2d"  "pval.t2d"  "se.t2d"    "metacca_P" "EA.glgc"   "NEA.glgc" 
+#[19] "beta.glgc" "se.glgc"   "N.glgc"    "pval.glgc" "EAF.glgc" 
+
+```
+
+#### merge
+
+```{r, eval=FALSE}
+
+colnames(Indp)[4]<-"SNP"
+Indp$SNP=as.character(Indp$SNP)
+univ$SNP=as.character(univ$SNP)
+
+tbl<-merge(univ,Indp[,c(4:6)],by="SNP")
+tbl2<-tbl[order(tbl$CHR,tbl$BP),]
+
+```
+
+
+#### save
+```{r, eval=FALSE}
+
+write.table(tbl2,file="/rsgrps/yann/amit/PleiotropicTraits/output_files/IndependentHits_ukb.ldl_diagram.t2d_metaccaP_20200207.txt",
+            row.names=F,quote=F)
+```
+
+#### add mtag estimates for both ldl and t2d in this table
+```{r, eval=FALSE}
+
+dat<-read.table(file="/rsgrps/yann/amit/PleiotropicTraits/output_files/IndependentHits_ukb.ldl_diagram.t2d_metaccaP_20200207.txt",T)
+ldl<-read.table(file="/rsgrps/yann/amit/PleiotropicTraits/mtag/LDL_T2D/ukb_ldl.eatingTime_t2d_20200116_trait_1.txt",T)
+t2d<-read.table(file="/rsgrps/yann/amit/PleiotropicTraits/mtag/LDL_T2D/ukb_ldl.eatingTime_t2d_20200116_trait_2.txt",T)
+
+dat$SNP=as.character(dat$SNP)
+ldl$SNP=as.character(ldl$SNP)
+t2d$SNP=as.character(t2d$SNP)
+
+names(ldl)
+# [1] "SNP"       "CHR"       "BP"        "A1"        "A2"        "Z"        
+# [7] "N"         "FRQ"       "mtag_beta" "mtag_se"   "mtag_z"    "mtag_pval"
+
+dat2=merge(dat,ldl[,c(1,9:12)],by="SNP",all.x=T) colnames(dat2)[29:32]<-c('mtag_beta.ldl','mtag_se.ldl','mtag_z.ldl','mtag_pval.ldl')
+dat3=merge(dat2,t2d[,c(1,9:12)],by="SNP",all.x=T)
+colnames(dat3)[33:36]<-c('mtag_beta.t2d','mtag_se.t2d','mtag_z.t2d','mtag_pval.t2d')
+
+write.table(dat3,file="/rsgrps/yann/amit/PleiotropicTraits/output_files/IndependentHits_ukb.ldl_diagram.t2d_metaccaP_mtag_20200207.txt",row.names=F,quote=F)
+```
+

@@ -1,0 +1,100 @@
+---
+title: "extract_bestSnps_replicationset"
+author: "Amit Arora"
+date: "February 6, 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+The goal here is to use the discovery set along with the bp range for the top hits. The bp range is then used to pull out best snp from the replication set. The best snp selection is based on opposite going (glgc.ldl and diagram.t2d). 
+
+#### read the glgc files
+```{r, eval=F}
+
+univ<-read.table(file="/rsgrps/yann/amit/PleiotropicTraits/output_files/Harmonized_glgc.ldl_diagram.t2d_2020206.txt",T)
+meta<-read.table(file="/rsgrps/yann/amit/PleiotropicTraits/output_files/metaCCA_glgc.ldl_diagram.t2d_20200206.txt",T)
+
+```
+
+#### merge univ and meta files
+
+```{r, eval=FALSE}
+
+## merge
+meta$rsid=as.character(meta$rsid)
+colnames(univ)[1]<-"rsid"; univ$rsid=as.character(univ$rsid)
+dat2<-merge(univ,meta[,c(1,5)],by="rsid")
+
+dat3<-dat2[,c('rsid','CHR','BP','effect_allele.exposure','other_allele.exposure','eaf.exposure','beta.exposure','pval.exposure','se.exposure','effect_allele.outcome','other_allele.outcome','eaf.outcome','beta.outcome','pval.outcome','se.outcome','P'),]
+
+### select the opposite going snps
+
+pos<-dat3[which(dat3$beta.exposure>0 & dat3$beta.outcome<0),]
+neg<-dat3[which(dat3$beta.exposure<0 & dat3$beta.outcome>0),]
+
+dat4=rbind(pos,neg)
+
+#dat5<-dat4[which(dat4$P<5e-4),]
+
+```
+
+#### extract the best snp basedon bp-ranges from discovery set
+```{r, eval=FALSE}
+
+### read the discovry set
+
+list<-read.table(file="/rsgrps/yann/amit/PleiotropicTraits/output_files/IndependentHits_ukb.ldl_diagram.t2d_metaccaP_20200207.txt",T)   
+chunkcount<-0 
+
+### rn with i=1 and after that
+OUT2<-OUT
+rm(OUT)
+rm(chunk)
+rm(chunkcount)
+
+tmp<-list[,c('CHR','bp_min','bp_max'),]
+tmp2<-tmp[-c(14,34,47),]
+#CHR   bp_min   bp_max
+#14   3 88263487 88264569
+#34  10 94809922 94809922
+#47  18 53193029 53193029
+
+## run with i=2 onwards
+
+for(i in 2:nrow(tmp2)){
+  
+  chunk<-dat4[which(dat4$CHR==tmp2[i,1] & dat4$BP>=tmp2[i,2] & dat4$BP<=tmp2[i,3]),]
+  chunk$rsid=as.character(chunk$rsid)
+  chunkcount<-chunkcount+1
+  OUT<-as.data.frame(matrix(nrow=100, ncol=10, NA))
+  names(OUT)<-c('Chr', 'bp_min', 'bp_max', 'Snp_replication', 'bp_replication', 'beta_minP_LDL', 'beta_minP_T2D', 'p_minP_LDL', 'p_minP_T2D','metacca_P_replication')
+  OUT$Chr[chunkcount]<-chunk$CHR[1]
+  OUT$bp_min[chunkcount]<-min(chunk$BP)
+  OUT$bp_max[chunkcount]<-max(chunk$BP)
+  OUT$Snp_replication[chunkcount]<-chunk$rsid[which.min(chunk$P)]
+  OUT$bp_replication[chunkcount]<-chunk$BP[which.min(chunk$P)]
+  OUT$beta_minP_LDL[chunkcount]<-chunk$beta.exposure[which.min(chunk$pval.exposure)]
+  OUT$beta_minP_T2D[chunkcount]<-chunk$beta.outcome[which.min(chunk$pval.outcome)]
+  OUT$p_minP_LDL[chunkcount]<-chunk$pval.exposure[which.min(chunk$pval.exposure)]
+  OUT$p_minP_T2D[chunkcount]<-chunk$pval.outcome[which.min(chunk$pval.outcome)]
+  OUT$metacca_P_replication[chunkcount]<-chunk$P[which.min(chunk$P)]
+  OUT2<-rbind(OUT2,OUT)
+  print(i)
+}
+
+out2<-na.omit(OUT2)
+
+colnames(out2)[2:3]<-c("bp_min2","bp_max2")
+tbl<-cbind(list[-c(14,34,47),],out2)
+
+
+write.table(tbl,file="/rsgrps/yann/amit/PleiotropicTraits/output_files/IndependentHits_from_discoverySet_replicated.in.glgc_using_bp.ranges_20200206.txt",row.names=F,quote=F)
+
+```
+
+
